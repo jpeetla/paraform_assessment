@@ -30,11 +30,10 @@ roles_dict = {entry['id']: {k: v for k, v in entry.items() if k != 'ID'} for ent
 # # role_embeddings = functions.embed_roles(roles_context) #(ID, Embedding)
 # functions.upload_pinecone(roles_dict)
 
-#Candidate Query
-@app.route('/query_roles', methods=['POST'])
+# Candidate Query
+@app.route('/query_roles', methods=['GET'])
 def query_roles():
-    data = request.get_json()
-    candidate_id = data.get("candidate_id")
+    candidate_id = request.args.get("candidate_id")
     # candidate_id = 'cm2tkgr5m016zjp0ci1n28wzk'
     if not candidate_id:
         return jsonify({"error": "candidate_id is required"}), 400
@@ -50,7 +49,6 @@ def query_roles():
     functions.open_linkedin(candidate_linkedin)
     ids = [obj["id"] for obj in response_dict["matches"]]
     for role_id in ids:
-        print(role_id)
         functions.open_company_profile(role_id)
     
     return jsonify(response_dict)
