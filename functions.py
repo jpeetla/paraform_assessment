@@ -11,7 +11,6 @@ from openai import OpenAI
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index("paraform")
 categoryembeddings_index = pc.Index("categoryembeddings")
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
 categories_list = [
     "Software Engineering", 
@@ -36,7 +35,7 @@ def clean_html(html):
     
     return html.strip()
 
-def embed_roles(roles_context):
+def embed_roles(embeddings, roles_context):
     role_embeddings = {}
     for key, value in roles_context.items():
         query_result = embeddings.embed_query(value)
@@ -64,7 +63,7 @@ def calc_candidate_experience_years(candidates_dict, cand_id):
     start = int(candidates_dict[cand_id]['candidate']['experiences'][first_experience]['start_date'][:4])
     return end - start
 
-def create_candidate_embedding(candidates_dict, candidate_id):
+def create_candidate_embedding(embeddings, candidates_dict, candidate_id):
     experience = ""
     for exp in candidates_dict[candidate_id]['candidate']['experiences']:
         r_t, d = "", ""
