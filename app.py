@@ -36,20 +36,18 @@ roles_dict = {entry['id']: {k: v for k, v in entry.items() if k != 'ID'} for ent
 @app.route('/query_roles', methods=['GET'])
 def query_roles():
     candidate_id = request.args.get("candidate_id")
+    candidate_data = functions.get_candidate_info(candidate_id)
+
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
-    # candidate_id = 'cm2tkgr5m016zjp0ci1n28wzk'
     if not candidate_id:
         return jsonify({"error": "candidate_id is required"}), 400
 
-    if candidate_id not in candidates_dict:
-        return jsonify({"error": "Invalid candidate_id"}), 404
-
-    category, candidate_embedding, candidate_years_experience = functions.create_candidate_embedding(embeddings, candidates_dict, candidate_id)
+    category, candidate_embedding, candidate_years_experience = functions.create_candidate_embedding(embeddings, candidate_data, candidate_id)
     result = functions.query_roles(category, candidate_embedding, candidate_years_experience)
     response_dict = result.to_dict()
 
-    candidate_linkedin = candidates_dict[candidate_id]['candidate']['linkedin_user']
+    candidate_linkedin = candidate_data['linkedin_user']
     functions.open_linkedin(candidate_linkedin)
     ids = [obj["id"] for obj in response_dict["matches"]]
     for role_id in ids:

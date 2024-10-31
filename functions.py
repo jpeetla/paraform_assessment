@@ -58,15 +58,15 @@ def upload_pinecone(roles_dict):
         print(i)
         i += 1
 
-def calc_candidate_experience_years(candidates_dict, cand_id):
-    end = int(candidates_dict[cand_id]['candidate']['experiences'][0]['start_date'][:4])  
-    first_experience = len(candidates_dict[cand_id]['candidate']['experiences']) - 1
-    start = int(candidates_dict[cand_id]['candidate']['experiences'][first_experience]['start_date'][:4])
+def calc_candidate_experience_years(candidate_data, cand_id):
+    end = int(candidate_data['experiences'][0]['start_date'][:4])  
+    first_experience = len(candidate_data['experiences']) - 1
+    start = int(candidate_data['experiences'][first_experience]['start_date'][:4])
     return end - start
 
-def create_candidate_embedding(embeddings, candidates_dict, candidate_id):
+def create_candidate_embedding(embeddings, candidate_data, candidate_id):
     experience = ""
-    for exp in candidates_dict[candidate_id]['candidate']['experiences']:
+    for exp in candidate_data['experiences']:
         r_t, d = "", ""
         if type(exp['role_title']) == str:
             r_t = exp['role_title']
@@ -79,18 +79,16 @@ def create_candidate_embedding(embeddings, candidates_dict, candidate_id):
     # embedding = embeddings.embed_query(experience)
     # category = categorize_candidate_with_llama(experience, categories_list)
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Submit the embedding and categorization tasks
         embedding_future = executor.submit(embeddings.embed_query, experience)
         category_future = executor.submit(categorize_candidate_with_llama, experience, categories_list)
 
-        # Retrieve the results from each future
         embedding = embedding_future.result()
         category = category_future.result()
-        
+
     print("Candidate Category:")
     print(category)
 
-    candidate_experience_years = calc_candidate_experience_years(candidates_dict, candidate_id)
+    candidate_experience_years = calc_candidate_experience_years(candidate_data, candidate_id)
     return category, embedding, candidate_experience_years
 
 def categorize_candidate_with_llama(profile_description, categories):
@@ -140,3 +138,21 @@ def open_company_profile(role_id):
     url = "https://www.paraform.com/company/melange/{}".format(role_id)
     print(url)
     webbrowser.open(url)
+
+import requests
+
+def get_candidate_info(candidate_id):
+    api_url = f"https://www.paraform.com/api/candidate/find_candidate?candidate_id={candidate_id}"
+
+    try:
+        response = requests.get(api_url)
+        
+        if response.status_code == 200:
+            print(response.json())
+            return response.json()  
+        else:
+            print(f"Failed to fetch candidate data: {response.status_code} - {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
