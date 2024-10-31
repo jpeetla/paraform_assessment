@@ -5,8 +5,9 @@ import re
 from langchain_huggingface import HuggingFaceEmbeddings
 import webbrowser
 import data_analysis
-from llamaapi import LlamaAPI
 from openai import OpenAI
+import concurrent.futures
+
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index("paraform")
@@ -75,8 +76,17 @@ def create_candidate_embedding(embeddings, candidates_dict, candidate_id):
         summary =  r_t + d
         experience += summary
 
-    embedding = embeddings.embed_query(experience)
-    category = categorize_candidate_with_llama(experience, categories_list)
+    # embedding = embeddings.embed_query(experience)
+    # category = categorize_candidate_with_llama(experience, categories_list)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Submit the embedding and categorization tasks
+        embedding_future = executor.submit(embeddings.embed_query, experience)
+        category_future = executor.submit(categorize_candidate_with_llama, experience, categories_list)
+
+        # Retrieve the results from each future
+        embedding = embedding_future.result()
+        category = category_future.result()
+        
     print("Candidate Category:")
     print(category)
 
