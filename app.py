@@ -2,8 +2,10 @@ import json
 from flask import Flask, request, jsonify
 import functions
 from langchain_huggingface import HuggingFaceEmbeddings
+import os
 
 app = Flask(__name__)
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 roles_file_path = 'roles.json'
 candidates_file_path = 'candidates.json'
