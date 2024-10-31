@@ -1,0 +1,8 @@
+[phases.setup]
+nixpkgs_inputs = ["python3", "pip"]
+
+[phases.install]
+run = "pip install -r requirements.txt"
+
+[phases.start]
+run = "python app.py"
