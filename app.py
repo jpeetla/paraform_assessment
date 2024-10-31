@@ -51,7 +51,7 @@ def query_roles():
     for role_id in ids:
         functions.open_company_profile(role_id)
     
-    return jsonify(response_dict)
+    return jsonify(ids)
 
 if __name__ == '__main__':
     app.run(debug=False)
